@@ -7,7 +7,7 @@ SELECT DISTINCT
     e.event_id,
     e.event_name,
     e.event_desc AS event_description,
-    r.ticket_price AS ticket_price,
+    e.ticket_price AS ticket_price,
     es.event_schedule_date AS event_date,
     es.start_time AS event_start_time,
     es.end_time AS event_end_time,
@@ -19,19 +19,10 @@ SELECT DISTINCT
         WHEN TRUNC(es.event_schedule_date) = TRUNC(SYSDATE) THEN 'Ongoing'
         ELSE 'Upcoming'
     END AS event_status
-FROM 
-    Organizer org
-INNER JOIN 
-    Event e ON org.organizer_id = e.organizer_id
-INNER JOIN 
-    Event_Schedule es ON e.event_id = es.event_id
-INNER JOIN 
-    Venue v ON es.venue_id = v.venue_id
-LEFT JOIN 
-    (SELECT event_id, MAX(ticket_price) AS ticket_price 
-     FROM Registration 
-     GROUP BY event_id) r ON e.event_id = r.event_id;
-
+FROM Organizer org
+INNER JOIN Event e ON org.organizer_id = e.organizer_id
+INNER JOIN Event_Schedule es ON e.event_id = es.event_id
+INNER JOIN Venue v ON es.venue_id = v.venue_id;
 
 
 
@@ -47,7 +38,7 @@ SELECT r.registration_id,
        e.event_id,
        e.event_name,
        e.event_desc AS event_description,
-       r.ticket_price,
+       e.ticket_price,
        es.event_schedule_date AS event_date,
        es.start_time AS event_start_time,
        es.end_time AS event_end_time,
@@ -70,7 +61,7 @@ SELECT
     e.event_id,
     e.event_name,
     e.event_desc AS event_description,
-    MAX(r.ticket_price) AS ticket_price, -- Use MAX to ensure one ticket price per event
+    MAX(e.ticket_price) AS ticket_price, -- Use MAX to ensure one ticket price per event
     es.event_schedule_date AS event_date,
     TO_CHAR(es.start_time, 'HH24:MI') AS event_start_time, -- Ensure readable time format
     TO_CHAR(es.end_time, 'HH24:MI') AS event_end_time,     -- Ensure readable time format
@@ -80,14 +71,9 @@ SELECT
         WHEN TRUNC(es.event_schedule_date) = TRUNC(SYSDATE) THEN 'Scheduled'
         ELSE 'Upcoming'
     END AS event_status
-FROM 
-    Event e
-JOIN 
-    Event_Schedule es ON e.event_id = es.event_id
-JOIN 
-    Venue v ON es.venue_id = v.venue_id
-LEFT JOIN 
-    Registration r ON e.event_id = r.event_id -- Ensure LEFT JOIN in case events have no registrations
+FROM Event e
+JOIN Event_Schedule es ON e.event_id = es.event_id
+JOIN Venue v ON es.venue_id = v.venue_id
 WHERE 
     es.event_schedule_date >= TRUNC(SYSDATE)
 GROUP BY 
@@ -98,6 +84,7 @@ GROUP BY
         WHEN TRUNC(es.event_schedule_date) = TRUNC(SYSDATE) THEN 'Scheduled'
         ELSE 'Upcoming'
     END;
+
 
 --- This view provides organizers with details of their events, registered attendees, and any feedback received. 
 
@@ -115,14 +102,10 @@ SELECT
     -- Ensure missing feedback is properly handled
     NVL(f.feedback_text, 'No feedback provided') AS feedback_text,
     NVL(CAST(f.rating AS VARCHAR2(10)), '0') AS rating  -- Convert rating to string if needed
-FROM 
-    Organizer o
-JOIN 
-    Event e ON o.organizer_id = e.organizer_id
-JOIN 
-    Registration r ON e.event_id = r.event_id
-JOIN 
-    Attendee a ON r.attendee_id = a.attendee_id
+FROM Organizer o
+JOIN Event e ON o.organizer_id = e.organizer_id
+JOIN Registration r ON e.event_id = r.event_id
+JOIN Attendee a ON r.attendee_id = a.attendee_id
 LEFT JOIN 
     Feedback f ON r.event_id = f.event_id 
              AND r.attendee_id = f.attendee_id
@@ -180,21 +163,7 @@ GROUP BY s.sponsor_id,
          es.event_schedule_date;
          
 ---------------------------------------------------------------
-         
-         
-
-
-
-
-SELECT * FROM OrganizerEventInformation_View;
-SELECT * FROM AttendeeEventInformation_View;
-SELECT * FROM ScheduledEvents_View;
-SELECT * FROM Organizer_Event_Insights_View;
-SELECT * FROM Attendee_Payment_Details_View;
-SELECT * FROM SponsorEventAnalysis_View;
------------------------------
-
-
+        
 
 
 
