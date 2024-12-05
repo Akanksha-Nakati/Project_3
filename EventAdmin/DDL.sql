@@ -59,7 +59,6 @@ CREATE SEQUENCE VENUE_SEQ START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE EVENT_SCHEDULE_SEQ START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE EVENT_SEQ START WITH 1 INCREMENT BY 1;
 
-
 -- Creating table for 'Attendee'
 CREATE TABLE Attendee (
     attendee_id NUMBER(10) NOT NULL PRIMARY KEY,
@@ -103,7 +102,8 @@ CREATE TABLE Event (
     event_name VARCHAR2(255) NOT NULL,
     event_desc VARCHAR2(1024) NOT NULL,
     organizer_id NUMBER(10) NOT NULL,
-    sponsor_id NUMBER(10) NOT NULL
+    sponsor_id NUMBER(10) NOT NULL,
+    ticket_price NUMBER(10)NOT NULL CHECK (ticket_price >= 0)
 );
 
 --New registration table
@@ -127,7 +127,6 @@ CREATE TABLE Feedback (
     sponsor_id NUMBER(10),
     CONSTRAINT unique_feedback UNIQUE (attendee_id, event_id)  -- Ensure unique combination of attendee and event
 );
-
 
 -- Creating table for 'Payment'
 CREATE TABLE Payment (
@@ -161,4 +160,5 @@ ALTER TABLE Payment ADD CONSTRAINT FK_Registration_Payment FOREIGN KEY (registra
 ALTER TABLE Event_Schedule ADD CONSTRAINT FK_Event_Event_Schedule FOREIGN KEY (event_id) REFERENCES Event(event_id);
 ALTER TABLE Event_Schedule ADD CONSTRAINT FK_Venue_Event_Schedule FOREIGN KEY (venue_id) REFERENCES Venue(venue_id);
 ALTER TABLE Venue ADD CONSTRAINT FK_Venue_Event_id FOREIGN KEY (event_id) REFERENCES Event(event_id);
+
 
